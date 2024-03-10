@@ -15,4 +15,7 @@ export class CardEntity {
   @ManyToOne(() => SectionEntity, (section) => section.cards)
   @JoinColumn({ name: 'section_id' })
   section: SectionEntity
+
+  @Column({ nullable: true, type: 'int' })
+  position?: number
 }

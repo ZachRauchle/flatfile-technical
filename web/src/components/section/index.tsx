@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Droppable } from 'react-beautiful-dnd'
 
 import Card from '../card'
 import { ISection } from '../../types/section'
@@ -22,10 +23,14 @@ import { ICard } from '../../types/card'
 
 const Section = ({
   section: { id, title, cards },
-  onCardSubmit
+  onCardSubmit,
+  onMoveCardToNext,
+  onMoveCardToPrevious
 }: {
   section: ISection
-  onCardSubmit: Function
+  onCardSubmit: (sectionId: number, title: string) => void
+  onMoveCardToNext: (cardId: number) => void
+  onMoveCardToPrevious: (cardId: number) => void
 }) => {
   const [isTempCardActive, setIsTempCardActive] = useState(false)
   const [cardText, setCardText] = useState('')
@@ -37,10 +42,23 @@ const Section = ({
           <SectionTitle>{title}</SectionTitle>
         </SectionHeader>
         <CardsContainer>
-          {cards.length &&
-            cards.map((card: ICard) => {
-              return <Card key={card.id} card={card}></Card>
-            })}
+          <Droppable droppableId={id.toString()}>
+            {(provided) => (
+              <div {...provided.droppableProps} ref={provided.innerRef}>
+                {cards.length > 0 &&
+                  cards.map((card: ICard, index: number) => (
+                    <Card
+                      key={card.id}
+                      card={card}
+                      index={index}
+                      onMoveCardToNext={onMoveCardToNext}
+                      onMoveCardToPrevious={onMoveCardToPrevious}
+                    />
+                  ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
         </CardsContainer>
         {isTempCardActive ? (
           <CardComposerDiv>
@@ -48,9 +66,7 @@ const Section = ({
               <ListCardDetails>
                 <ListCardTextArea
                   placeholder='Enter a title for the new card'
-                  onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-                    setCardText(e.target.value)
-                  }
+                  onChange={(e) => setCardText(e.target.value)}
                 />
               </ListCardDetails>
             </ListCardComponent>
@@ -63,6 +79,7 @@ const Section = ({
 
                   if (cardText) {
                     onCardSubmit(id, cardText)
+                    setCardText('')
                   }
 
                   setIsTempCardActive(false)
